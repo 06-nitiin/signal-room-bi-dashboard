@@ -28,10 +28,3 @@ pnpm run build
 - `package.json` contains the small dependency set and scripts.
 - `vite.config.ts` and `tsconfig.json` are the minimum build/type-check configuration.
 
-## Suggested first commit
-
-```bash
-git init
-git add .
-git commit -m "chore: initialize Signal Room BI starter"
-```
