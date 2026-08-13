@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # TypeScript build cache
 *.tsbuildinfo
+
+data/raw/
+data/processed/
