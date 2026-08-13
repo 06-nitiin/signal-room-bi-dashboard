@@ -28,3 +28,5 @@ pnpm-debug.log*
 
 data/raw/
 data/processed/
+
+client/public/data/online-retail-cleaned.csv
