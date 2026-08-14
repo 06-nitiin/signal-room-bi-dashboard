@@ -52,10 +52,10 @@ const channelClasses: Record<string, string> = {
 
 function formatMoney(value: number) {
   if (value >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(2)}m`;
+    return `£${(value / 1_000_000).toFixed(2)}m`;
   }
 
-  return `$${Math.round(value / 1_000)}k`;
+  return `£${Math.round(value / 1_000)}k`;
 }
 
 
@@ -334,7 +334,7 @@ function Overview({
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">
-            Readout 01 / H1 2024
+            Readout 01 / Dec 2010 — Dec 2011
           </p>
 
           <h1>
@@ -346,7 +346,7 @@ function Overview({
           <p>
             A decision-ready view of revenue performance,
             repeat behavior, and regional efficiency across
-            the first half of the year.
+            the UCI Online Retail period.
           </p>
         </div>
 
@@ -374,8 +374,13 @@ function Overview({
             {dataStatus === "loading"
               ? "Loading cleaned UCI data..."
               : isRealData
-                ? "Source: cleaned UCI Online Retail rows"
+                ? "Source: UCI Online Retail / cleaned transaction rows"
                 : "Using illustrative fallback data — add the cleaned CSV to enable real data"}
+          </p>
+
+          <p className="data-disclosure">
+            Period: December 2010–December 2011 · Revenue shown in GBP ·
+            Acquisition channel is not provided by the source.
           </p>
         </div>
 
@@ -489,7 +494,9 @@ function Overview({
           <div className="panel-heading">
             <div>
               <p className="eyebrow">
-                Acquisition / mix
+                {channelUnavailable
+                  ? "Source field / not available"
+                  : "Acquisition / mix"}
               </p>
 
               <h2>
