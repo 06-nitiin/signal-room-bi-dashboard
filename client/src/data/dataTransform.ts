@@ -13,6 +13,7 @@ export type AnalyticsSummary = {
   repeatRate: number;
   averageOrderValue: number;
   activeAccounts: number;
+  monthlyLabels: string[];
   monthlyRevenue: number[];
   channelMix: Record<string, number>;
 };
@@ -24,8 +25,6 @@ type InvoiceSummary = {
   revenue: number;
 };
 
-const monthIndex = (date: string) => new Date(`${date}T00:00:00`).getMonth();
-
 export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"): AnalyticsSummary {
   const completedRows = rows.filter((row) => row.status !== "cancelled");
   const filteredRows = selectedRegion === "All regions"
@@ -33,7 +32,7 @@ export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"
     : completedRows.filter((row) => row.region === selectedRegion);
 
   const invoices = new Map<string, InvoiceSummary>();
-  const monthlyRevenue = Array.from({ length: 6 }, () => 0);
+  const monthlyTotals: Record<string, number> = {};
   const channelRevenue: Record<string, number> = {};
 
   for (const row of filteredRows) {
@@ -45,8 +44,8 @@ export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"
       revenue: (existingInvoice?.revenue ?? 0) + row.revenue,
     });
 
-    const month = monthIndex(row.date);
-    if (month >= 0 && month < 6) monthlyRevenue[month] += row.revenue;
+    const month = row.date.slice(0, 7);
+    monthlyTotals[month] = (monthlyTotals[month] ?? 0) + row.revenue;
     channelRevenue[row.channel] = (channelRevenue[row.channel] ?? 0) + row.revenue;
   }
 
@@ -59,6 +58,7 @@ export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"
   const revenue = filteredRows.reduce((total, row) => total + row.revenue, 0);
   const activeAccounts = customerOrders.size;
   const repeatCustomers = Array.from(customerOrders.values()).filter((orders) => orders.size > 1).length;
+  const monthlyEntries = Object.entries(monthlyTotals).sort(([left], [right]) => left.localeCompare(right));
   const channelMix = Object.fromEntries(
     Object.entries(channelRevenue).map(([channel, channelValue]) => [
       channel,
@@ -71,7 +71,8 @@ export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"
     repeatRate: activeAccounts === 0 ? 0 : (repeatCustomers / activeAccounts) * 100,
     averageOrderValue: invoices.size === 0 ? 0 : revenue / invoices.size,
     activeAccounts,
-    monthlyRevenue,
+    monthlyLabels: monthlyEntries.map(([month]) => month),
+    monthlyRevenue: monthlyEntries.map(([, value]) => value),
     channelMix,
   };
 }

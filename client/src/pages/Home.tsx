@@ -31,6 +31,7 @@ type ViewSnapshot = {
   averageOrderChange: string;
   activeAccounts: string;
   accountsChange: string;
+  monthlyLabels: string[];
   monthlyRevenue: number[];
   channelMix: {
     name: string;
@@ -73,6 +74,8 @@ function realSummaryToSnapshot(
 
     activeAccounts: summary.activeAccounts.toLocaleString(),
     accountsChange: "Calculated",
+
+    monthlyLabels: summary.monthlyLabels,
 
     monthlyRevenue: summary.monthlyRevenue.map(
       (value) => Math.round(value / 1_000)
@@ -317,6 +320,10 @@ function Overview({
           (region) => region.name === selectedRegion
         );
 
+  const chartLabels: string[] = isRealData
+    ? (snapshot as ViewSnapshot).monthlyLabels
+    : months;
+
   const channelUnavailable =
     snapshot.channelMix.length === 1 &&
     snapshot.channelMix[0].name === "Unknown";
@@ -460,7 +467,7 @@ function Overview({
 
           <RevenueChart
             values={snapshot.monthlyRevenue}
-            labels={months}
+            labels={chartLabels}
           />
 
           <div className="annotation">
