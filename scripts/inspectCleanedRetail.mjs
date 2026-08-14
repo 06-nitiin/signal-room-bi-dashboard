@@ -57,6 +57,13 @@ for (const row of rows) {
 
 const repeatCustomers = Array.from(customers.values()).filter((orders) => orders.size > 1).length;
 const report = {
+  metricGrain: {
+    revenue: "completed line-item revenue",
+    orders: "distinct orderId values",
+    averageOrderValue: "totalRevenue / distinctOrders",
+    activeAccounts: "distinct customerId values",
+    repeatRate: "customers with more than one distinct order / distinct customers",
+  },
   cleanedRows: rows.length,
   distinctOrders: orderIds.size,
   distinctCustomers: customers.size,
