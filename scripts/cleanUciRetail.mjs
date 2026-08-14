@@ -33,12 +33,19 @@ function parseCsvLine(line) {
 }
 
 function parseInvoiceDate(value) {
-  const [datePart, timePart = "00:00"] = value.split(" ");
-  const [day, month, year] = datePart.split("/").map(Number);
-  const [hour = 0, minute = 0] = timePart.split(":").map(Number);
-  const parsed = new Date(Date.UTC(year, month - 1, day, hour, minute));
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s+(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+
+  const [, monthText, dayText, rawYearText, hourText, minuteText] = match;
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const rawYear = Number(rawYearText);
+  const year = rawYear < 100 ? 2000 + rawYear : rawYear;
+  const parsed = new Date(Date.UTC(year, month - 1, day, Number(hourText), Number(minuteText)));
 
   if (Number.isNaN(parsed.getTime())) return null;
+  const parsedYear = parsed.getUTCFullYear();
+  if (parsedYear < 2010 || parsedYear > 2011) return null;
   return parsed.toISOString();
 }
 
