@@ -17,6 +17,13 @@ export type AnalyticsSummary = {
   channelMix: Record<string, number>;
 };
 
+type InvoiceSummary = {
+  customerId: string;
+  date: string;
+  channel: string;
+  revenue: number;
+};
+
 const monthIndex = (date: string) => new Date(`${date}T00:00:00`).getMonth();
 
 export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"): AnalyticsSummary {
@@ -25,24 +32,33 @@ export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"
     ? completedRows
     : completedRows.filter((row) => row.region === selectedRegion);
 
-  const revenue = filteredRows.reduce((total, row) => total + row.revenue, 0);
-  const customers = new Map<string, number>();
+  const invoices = new Map<string, InvoiceSummary>();
   const monthlyRevenue = Array.from({ length: 6 }, () => 0);
   const channelRevenue: Record<string, number> = {};
 
-  filteredRows.forEach((row) => {
-    customers.set(row.customerId, (customers.get(row.customerId) ?? 0) + 1);
+  for (const row of filteredRows) {
+    const existingInvoice = invoices.get(row.orderId);
+    invoices.set(row.orderId, {
+      customerId: existingInvoice?.customerId ?? row.customerId,
+      date: existingInvoice?.date ?? row.date,
+      channel: existingInvoice?.channel ?? row.channel,
+      revenue: (existingInvoice?.revenue ?? 0) + row.revenue,
+    });
 
     const month = monthIndex(row.date);
-    if (month >= 0 && month < 6) {
-      monthlyRevenue[month] += row.revenue;
-    }
-
+    if (month >= 0 && month < 6) monthlyRevenue[month] += row.revenue;
     channelRevenue[row.channel] = (channelRevenue[row.channel] ?? 0) + row.revenue;
+  }
+
+  const customerOrders = new Map<string, Set<string>>();
+  invoices.forEach((invoice, orderId) => {
+    if (!customerOrders.has(invoice.customerId)) customerOrders.set(invoice.customerId, new Set());
+    customerOrders.get(invoice.customerId)?.add(orderId);
   });
 
-  const repeatCustomers = Array.from(customers.values()).filter((orderCount) => orderCount > 1).length;
-  const activeAccounts = customers.size;
+  const revenue = filteredRows.reduce((total, row) => total + row.revenue, 0);
+  const activeAccounts = customerOrders.size;
+  const repeatCustomers = Array.from(customerOrders.values()).filter((orders) => orders.size > 1).length;
   const channelMix = Object.fromEntries(
     Object.entries(channelRevenue).map(([channel, channelValue]) => [
       channel,
@@ -53,7 +69,7 @@ export function transformOrders(rows: OrderRow[], selectedRegion = "All regions"
   return {
     revenue,
     repeatRate: activeAccounts === 0 ? 0 : (repeatCustomers / activeAccounts) * 100,
-    averageOrderValue: filteredRows.length === 0 ? 0 : revenue / filteredRows.length,
+    averageOrderValue: invoices.size === 0 ? 0 : revenue / invoices.size,
     activeAccounts,
     monthlyRevenue,
     channelMix,
