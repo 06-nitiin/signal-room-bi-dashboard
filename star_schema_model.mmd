@@ -1,0 +1,41 @@
+erDiagram
+  DIM_DATE ||--o{ FACT_SALES : "DateKey"
+  DIM_CUSTOMER ||--o{ FACT_SALES : "CustomerKey"
+  DIM_PRODUCT ||--o{ FACT_SALES : "ProductKey"
+  DIM_GEOGRAPHY ||--o{ FACT_SALES : "GeographyKey"
+
+  DIM_DATE {
+    int DateKey PK
+    date Date
+    int Year
+    string MonthName
+    string YearMonth
+    string Quarter
+  }
+
+  DIM_CUSTOMER {
+    string CustomerKey PK
+  }
+
+  DIM_PRODUCT {
+    string ProductKey PK
+    string Description
+  }
+
+  DIM_GEOGRAPHY {
+    string GeographyKey PK
+    string Country
+    string Region
+  }
+
+  FACT_SALES {
+    string OrderID
+    int DateKey FK
+    string CustomerKey FK
+    string ProductKey FK
+    string GeographyKey FK
+    int Quantity
+    decimal UnitPrice
+    decimal Revenue
+    string Status
+  }
